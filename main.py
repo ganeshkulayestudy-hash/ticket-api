@@ -1,6 +1,6 @@
 ﻿from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Ticket API")
@@ -29,3 +29,11 @@ def create_ticket(ticket: TicketCreate):
 @app.get("/tickets")
 def list_tickets():
     return tickets
+
+
+@app.get("/tickets/{ticket_id}")
+def get_ticket(ticket_id: int):
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            return ticket
+    raise HTTPException(status_code=404, detail="Ticket not found")
