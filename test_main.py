@@ -45,3 +45,19 @@ def test_get_ticket():
 def test_get_missing_ticket_returns_404():
     response = client.get("/tickets/999")
     assert response.status_code == 404
+def test_update_ticket():
+    client.post("/tickets", json={"title": "Printer not working", "priority": "low"})
+    response = client.patch("/tickets/1", json={"priority": "high"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["priority"] == "high"
+    assert data["title"] == "Printer not working"
+def test_update_missing_ticket_returns_404():
+    response = client.patch("/tickets/999", json={"priority": "high"})
+    assert response.status_code == 404
+
+
+def test_update_rejects_short_title():
+    client.post("/tickets", json={"title": "Printer not working"})
+    response = client.patch("/tickets/1", json={"title": "ab"})
+    assert response.status_code == 422

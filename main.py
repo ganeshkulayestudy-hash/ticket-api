@@ -37,3 +37,18 @@ def get_ticket(ticket_id: int):
         if ticket["id"] == ticket_id:
             return ticket
     raise HTTPException(status_code=404, detail="Ticket not found")
+
+
+class TicketUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=3, max_length=100)
+    description: str | None = None
+    priority: Literal["low", "medium", "high"] | None = None
+
+
+@app.patch("/tickets/{ticket_id}")
+def update_ticket(ticket_id: int, update: TicketUpdate):
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            ticket.update(update.model_dump(exclude_none=True))
+            return ticket
+    raise HTTPException(status_code=404, detail="Ticket not found")
