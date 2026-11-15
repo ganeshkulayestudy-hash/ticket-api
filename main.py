@@ -27,7 +27,9 @@ def create_ticket(ticket: TicketCreate):
 
 
 @app.get("/tickets")
-def list_tickets():
+def list_tickets(status: str | None = None):
+    if status:
+        return [t for t in tickets if t["status"] == status]
     return tickets
 
 
@@ -59,4 +61,12 @@ def close_ticket(ticket_id: int):
         if ticket["id"] == ticket_id:
             ticket["status"] = "closed"
             return ticket
+    raise HTTPException(status_code=404, detail="Ticket not found")
+
+@app.delete("/tickets/{ticket_id}", status_code=204)
+def delete_ticket(ticket_id: int):
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            tickets.remove(ticket)
+            return
     raise HTTPException(status_code=404, detail="Ticket not found")

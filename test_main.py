@@ -83,3 +83,23 @@ def test_close_ticket():
 def test_close_missing_ticket_returns_404():
     response = client.post("/tickets/999/close")
     assert response.status_code == 404
+
+def test_delete_ticket():
+    client.post("/tickets", json={"title": "Printer not working"})
+    response = client.delete("/tickets/1")
+    assert response.status_code == 204
+    assert client.get("/tickets/1").status_code == 404
+
+
+def test_delete_missing_ticket_returns_404():
+    response = client.delete("/tickets/999")
+    assert response.status_code == 404
+
+
+def test_filter_tickets_by_status():
+    client.post("/tickets", json={"title": "First ticket"})
+    client.post("/tickets", json={"title": "Second ticket"})
+    client.post("/tickets/1/close")
+    open_tickets = client.get("/tickets?status=open").json()
+    assert len(open_tickets) == 1
+    assert open_tickets[0]["id"] == 2
