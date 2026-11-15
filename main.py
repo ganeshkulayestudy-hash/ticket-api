@@ -52,3 +52,11 @@ def update_ticket(ticket_id: int, update: TicketUpdate):
             ticket.update(update.model_dump(exclude_none=True))
             return ticket
     raise HTTPException(status_code=404, detail="Ticket not found")
+
+@app.post("/tickets/{ticket_id}/close")
+def close_ticket(ticket_id: int):
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            ticket["status"] = "closed"
+            return ticket
+    raise HTTPException(status_code=404, detail="Ticket not found")

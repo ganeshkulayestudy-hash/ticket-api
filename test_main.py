@@ -61,3 +61,25 @@ def test_update_rejects_short_title():
     client.post("/tickets", json={"title": "Printer not working"})
     response = client.patch("/tickets/1", json={"title": "ab"})
     assert response.status_code == 422
+
+def test_close_ticket():
+    client.post("/tickets", json={"title": "Printer not working"})
+    response = client.post("/tickets/1/close")
+    assert response.status_code == 200
+    assert response.json()["status"] == "closed"
+
+
+def test_close_missing_ticket_returns_404():
+    response = client.post("/tickets/999/close")
+    assert response.status_code == 404
+
+def test_close_ticket():
+    client.post("/tickets", json={"title": "Printer not working"})
+    response = client.post("/tickets/1/close")
+    assert response.status_code == 200
+    assert response.json()["status"] == "closed"
+
+
+def test_close_missing_ticket_returns_404():
+    response = client.post("/tickets/999/close")
+    assert response.status_code == 404
