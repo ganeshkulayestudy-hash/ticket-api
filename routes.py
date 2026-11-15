@@ -1,8 +1,11 @@
-﻿from fastapi import APIRouter, HTTPException
+﻿import logging
+
+from fastapi import APIRouter, HTTPException
 
 from models import TicketCreate, TicketUpdate
 from storage import tickets
 
+logger = logging.getLogger("ticket_api")
 router = APIRouter(prefix="/tickets")
 
 
@@ -10,6 +13,7 @@ router = APIRouter(prefix="/tickets")
 def create_ticket(ticket: TicketCreate):
     new_ticket = {"id": len(tickets) + 1, "status": "open", **ticket.model_dump()}
     tickets.append(new_ticket)
+    logger.info("Created ticket %s", new_ticket["id"])
     return new_ticket
 
 
@@ -33,6 +37,7 @@ def update_ticket(ticket_id: int, update: TicketUpdate):
     for ticket in tickets:
         if ticket["id"] == ticket_id:
             ticket.update(update.model_dump(exclude_none=True))
+            logger.info("Updated ticket %s", ticket_id)
             return ticket
     raise HTTPException(status_code=404, detail="Ticket not found")
 
@@ -42,6 +47,7 @@ def close_ticket(ticket_id: int):
     for ticket in tickets:
         if ticket["id"] == ticket_id:
             ticket["status"] = "closed"
+            logger.info("Closed ticket %s", ticket_id)
             return ticket
     raise HTTPException(status_code=404, detail="Ticket not found")
 
@@ -51,5 +57,6 @@ def delete_ticket(ticket_id: int):
     for ticket in tickets:
         if ticket["id"] == ticket_id:
             tickets.remove(ticket)
+            logger.info("Deleted ticket %s", ticket_id)
             return
     raise HTTPException(status_code=404, detail="Ticket not found")

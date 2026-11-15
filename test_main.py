@@ -90,3 +90,25 @@ def test_app_name_comes_from_settings(client):
 
     assert settings.app_name == "Ticket API"
     assert client.get("/").json() == {"message": "Ticket API is running"}
+
+
+def test_not_found_uses_error_format(client):
+    response = client.get("/tickets/999")
+    assert response.status_code == 404
+    assert response.json() == {"error": {"code": 404, "message": "Ticket not found"}}
+
+
+def test_validation_error_uses_error_format(client):
+    response = client.post("/tickets", json={"title": "ab"})
+    body = response.json()
+    assert response.status_code == 422
+    assert body["error"]["message"] == "Validation failed"
+    assert body["error"]["details"][0]["field"] == "title"
+
+
+def test_create_ticket_is_logged(client, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="ticket_api")
+    client.post("/tickets", json={"title": "Printer not working"})
+    assert "Created ticket 1" in caplog.text
