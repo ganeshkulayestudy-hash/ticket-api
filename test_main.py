@@ -83,3 +83,10 @@ def test_filter_tickets_by_status(client, ticket):
     open_tickets = client.get("/tickets?status=open").json()
     assert len(open_tickets) == 1
     assert open_tickets[0]["title"] == "Second ticket"
+
+
+def test_app_name_comes_from_settings(client):
+    from config import settings
+
+    assert settings.app_name == "Ticket API"
+    assert client.get("/").json() == {"message": "Ticket API is running"}
