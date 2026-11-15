@@ -112,3 +112,40 @@ def test_create_ticket_is_logged(client, caplog):
     caplog.set_level(logging.INFO, logger="ticket_api")
     client.post("/tickets", json={"title": "Printer not working"})
     assert "Created ticket 1" in caplog.text
+
+
+import pytest
+
+
+@pytest.mark.parametrize("title", ["", "a", "ab", "x" * 101])
+def test_create_rejects_invalid_titles(client, title):
+    response = client.post("/tickets", json={"title": title})
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("priority", ["low", "medium", "high"])
+def test_create_accepts_valid_priorities(client, priority):
+    response = client.post("/tickets", json={"title": "Printer not working", "priority": priority})
+    assert response.status_code == 201
+    assert response.json()["priority"] == priority
+
+
+@pytest.mark.parametrize("priority", ["urgent", "HIGH", "", 5])
+def test_create_rejects_invalid_priorities(client, priority):
+    response = client.post("/tickets", json={"title": "Printer not working", "priority": priority})
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "method, path",
+    [
+        ("GET", "/tickets/999"),
+        ("PATCH", "/tickets/999"),
+        ("POST", "/tickets/999/close"),
+        ("DELETE", "/tickets/999"),
+    ],
+)
+def test_missing_ticket_returns_error_format(client, method, path):
+    response = client.request(method, path, json={"priority": "high"})
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == 404
